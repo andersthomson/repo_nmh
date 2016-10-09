@@ -2,18 +2,23 @@
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 
-EAPI="2"
+EAPI="6"
 
-inherit eutils base
 
 DESCRIPTION="New MH mail reader"
 HOMEPAGE="http://www.nongnu.org/nmh/"
-SRC_URI="https://savannah.nongnu.org/download/nmh/${P}.tar.gz"
+
+if [ "${PV#9999}" != "${PV}" ] ; then
+	SCM="git-r3"
+	EGIT_REPO_URI="git://git.savannah.nongnu.org/nmh.git"
+fi
+
+inherit eutils ${SCM}
 
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="gdbm"
+IUSE="gdbm tls oauth sasl"
 
 DEPEND="gdbm? ( sys-libs/gdbm )
 	!gdbm? ( sys-libs/db )
@@ -45,18 +50,24 @@ src_configure() {
 			myconf="${myconf} --with-ndbmheader=db1/ndbm.h --with-ndbm=db1"
 		fi
 	fi
+	if use sasl; then
+		myconf="${myconf} --with-curus-sasl"
+	fi
+	if use tls; then
+		myconf="{myconf} --with-tls"
+	fi
+	if use oauth; then
+		myconf="{myconf} --with-oauth"
+	fi
 
-	# use wrapper scripts to avoid implicit dependencies (Bug #294762)
-	EDITOR=/usr/libexec/editor
-	PAGER=/usr/libexec/pager
-
+	./autogen.sh
+	#This file is missign afn automake assume is there...
+	touch ChangeLog
 	econf \
 		--prefix=/usr \
 		--mandir=/usr/share/man \
-		--with-editor="${EDITOR}" \
-		--with-pager="${PAGER}" \
-		--with-tls \
-		--enable-nmh-pop \
-		--sysconfdir=/etc/nmh \
+		--sysconfdir=/etc \
 		${myconf}
 }
+
+
