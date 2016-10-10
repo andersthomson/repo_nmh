@@ -61,8 +61,6 @@ src_configure() {
 	fi
 
 	./autogen.sh
-	#This file is missign afn automake assume is there...
-	touch ChangeLog
 	econf \
 		--prefix=/usr \
 		--mandir=/usr/share/man \
@@ -70,4 +68,6 @@ src_configure() {
 		${myconf}
 }
 
-
+src_compile() {
+	emake all ChangeLog
+}
